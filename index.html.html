@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIXEL ART WARS - Guild Warfare on the Canvas</title>
+    <meta name="description" content="Buy $PIXEL tokens and conquer the collaborative canvas. $1 = 1 pixel. r/place meets crypto.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.95);
+            border-bottom: 3px solid #ff0000;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .title {
+            font-size: 2.5em;
+            font-weight: bold;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #ff0000, #8b00ff, #ffcc00, #00ccff, #00ff00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1em;
+            color: #ff6600;
+            margin-bottom: 15px;
+        }
+
+        .buy-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #00ff00, #00cc00);
+            color: #000;
+            padding: 12px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: transform 0.3s;
+            margin: 10px;
+        }
+
+        .buy-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0,255,0,0.4);
+        }
+
+        .main-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .canvas-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .canvas-wrapper {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            border: 3px solid #333;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        .pixel-canvas {
+            display: grid;
+            gap: 1px;
+            background: #000;
+            border: 2px solid #666;
+            cursor: crosshair;
+            image-rendering: pixelated;
+        }
+
+        .pixel-cell {
+            width: 8px;
+            height: 8px;
+            background: #222;
+            transition: background-color 0.2s;
+        }
+
+        .pixel-cell:hover {
+            opacity: 0.7;
+            outline: 2px solid #fff;
+            outline-offset: -2px;
+        }
+
+        .sidebar {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel {
+            background: rgba(20,20,20,0.95);
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .panel-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ff6600;
+            margin-bottom: 15px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .wallet-input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(0,0,0,0.7);
+            border: 2px solid #666;
+            border-radius: 8px;
+            color: #fff;
+            font-family: monospace;
+            font-size: 0.95em;
+            margin: 10px 0;
+        }
+
+        .wallet-input:focus {
+            outline: none;
+            border-color: #ff6600;
+            box-shadow: 0 0 10px rgba(255,100,0,0.3);
+        }
+
+        .wallet-input::placeholder {
+            color: #666;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 8px 0;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255,0,0,0.5);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn.success {
+            background: linear-gradient(135deg, #00ff00, #00cc00);
+            color: #000;
+        }
+
+        .status-box {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .status-success {
+            background: rgba(0,255,0,0.1);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+        }
+
+        .status-error {
+            background: rgba(255,0,0,0.1);
+            border: 1px solid #ff0000;
+            color: #ff0000;
+        }
+
+        .status-loading {
+            background: rgba(255,165,0,0.1);
+            border: 1px solid #ff6600;
+            color: #ff6600;
+        }
+
+        .balance-display {
+            background: linear-gradient(135deg, rgba(255,100,0,0.2), rgba(255,0,0,0.2));
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ff6600;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .balance-amount {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #ff6600;
+            margin: 10px 0;
+        }
+
+        .balance-label {
+            font-size: 0.85em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .pixel-counter {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .pixel-count {
+            font-size: 3.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .cooldown-bar {
+            width: 100%;
+            height: 20px;
+            background: #222;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .cooldown-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ff6600);
+            transition: width 0.1s linear;
+            font-size: 0.75em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .guild-card {
+            padding: 15px;
+            border: 2px solid;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(0,0,0,0.5);
+            margin: 8px 0;
+        }
+
+        .guild-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 0 20px currentColor;
+        }
+
+        .guild-card.selected {
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 30px currentColor;
+        }
+
+        .guild-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .stats-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 5px;
+            border-left: 3px solid;
+        }
+
+        .activity-feed {
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 0.85em;
+        }
+
+        .activity-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255,255,255,0.05);
+            border-left: 3px solid;
+            border-radius: 5px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .instructions {
+            background: rgba(255,100,0,0.1);
+            border: 2px solid #ff6600;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px;
+        }
+
+        .instructions h3 {
+            color: #ff6600;
+            margin-bottom: 15px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .warning-box {
+            background: rgba(255,0,0,0.1);
+            border: 2px solid #ff0000;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        @media (max-width: 1200px) {
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">🎨 PIXEL ART WARS 🎨</div>
+        <div class="subtitle">Guild Warfare • r/place Style • $1 = 1 Pixel</div>
+        <a href="#" id="buyTokenLink" class="buy-link" target="_blank">🚀 BUY $PIXEL TOKEN</a>
+    </div>
+
+    <div class="instructions">
+        <h3>🎮 HOW TO PLAY:</h3>
+        <ol>
+            <li><strong>Buy $PIXEL tokens</strong> on pump.fun (link above)</li>
+            <li><strong>Enter your Solana wallet address</strong> (the one you bought tokens with)</li>
+            <li><strong>Choose your Guild</strong> - PERMANENT choice for your wallet</li>
+            <li><strong>Claim pixels</strong> - Your USD token value = pixels ($1 = 1 pixel)</li>
+            <li><strong>Click canvas to place pixels</strong> and conquer territory for your guild!</li>
+        </ol>
+        <div class="warning-box">
+            <strong>⚠️ SELL PENALTY:</strong> Selling tokens removes pixels from canvas! Amount removed = USD value sold. Hold to keep your territory! 💎
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="canvas-section">
+            <div class="canvas-wrapper">
+                <div id="pixelCanvas" class="pixel-canvas"></div>
+            </div>
+            <div style="margin-top: 15px; text-align: center; color: #888;">
+                Total Pixels: <span id="totalPixels" style="color: #fff; font-weight: bold;">0</span>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <!-- WALLET -->
+            <div class="panel">
+                <div class="panel-title">👛 WALLET</div>
+                
+                <div id="walletInputSection">
+                    <input 
+                        type="text" 
+                        id="walletInput" 
+                        class="wallet-input" 
+                        placeholder="Enter Solana wallet address"
+                        maxlength="44"
+                    >
+                    <button class="btn" onclick="connectWallet()">CONNECT WALLET</button>
+                    <div id="statusMessage"></div>
+                </div>
+
+                <div id="walletConnectedSection" style="display: none;">
+                    <div class="status-box status-success">
+                        ✅ Connected: <span id="walletAddress"></span>
+                    </div>
+
+                    <div class="balance-display">
+                        <div class="balance-label">Token Balance</div>
+                        <div class="balance-amount" id="tokenBalance">0</div>
+                        <div class="balance-label" style="margin-top: 10px;">USD Value</div>
+                        <div style="font-size: 1.8em; color: #00ff00; font-weight: bold; margin: 8px 0;" id="usdValue">$0.00</div>
+                        <div class="balance-label">Available Pixels</div>
+                        <div style="font-size: 1.4em; color: #ff6600; font-weight: bold; margin: 5px 0;" id="availablePixels">0</div>
+                    </div>
+
+                    <div class="pixel-counter">
+                        <div class="balance-label">Your Pixels</div>
+                        <div class="pixel-count" id="pixelCount">0</div>
+                        <div id="cooldownText" style="color: #888; font-size: 0.9em; margin-top: 5px;">Ready to place!</div>
+                        <div class="cooldown-bar">
+                            <div class="cooldown-fill" id="cooldownBar"></div>
+                        </div>
+                    </div>
+
+                    <button class="btn success" onclick="claimPixels()" id="claimBtn">CLAIM PIXELS</button>
+                    <button class="btn" style="background: #666;" onclick="refreshBalance()">REFRESH BALANCE</button>
+                </div>
+            </div>
+
+            <!-- GUILDS -->
+            <div class="panel">
+                <div class="panel-title">⚔️ SELECT GUILD</div>
+                <div style="text-align: center; color: #ff6600; font-size: 0.85em; margin-bottom: 10px;">
+                    (Connect wallet first)
+                </div>
+                <div id="guildSelector"></div>
+            </div>
+
+            <!-- RANKINGS -->
+            <div class="panel">
+                <div class="panel-title">🏆 RANKINGS</div>
+                <div class="stats-list" id="rankings"></div>
+            </div>
+
+            <!-- ACTIVITY -->
+            <div class="panel">
+                <div class="panel-title">📜 ACTIVITY</div>
+                <div class="activity-feed" id="activityFeed"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        const CONFIG = {
+            GRID_SIZE: 80,
+            TOKEN_CONTRACT: "PASTE_YOUR_TOKEN_ADDRESS_HERE", // Replace with your pump.fun token address
+            PUMP_FUN_URL: "https://pump.fun/coin/YOUR_TOKEN", // Replace with your token URL
+            PIXELS_PER_DOLLAR: 1,
+            COOLDOWN_SECONDS: 0.5,
+            SOLANA_RPC: "https://api.mainnet-beta.solana.com"
+        };
+
+        // Set buy link
+        document.getElementById('buyTokenLink').href = CONFIG.PUMP_FUN_URL;
+
+        // ============================================
+        // GUILDS
+        // ============================================
+        const GUILDS = [
+            { 
+                id: 'dragon', 
+                name: 'DRAGON ARMY', 
+                icon: '🔥', 
+                color: '#ff0000',
+                sounds: {
+                    place: ['BURN!', 'ROAAR!', 'FIRE!'],
+                    claim: ['FIRE RISES!', 'DRAGON AWAKENS!'],
+                    join: ['WELCOME TO THE INFERNO!'],
+                    sell: ['BETRAYAL!']
+                }
+            },
+            { 
+                id: 'reaper', 
+                name: 'REAPER SQUAD', 
+                icon: '💀', 
+                color: '#8b00ff',
+                sounds: {
+                    place: ['DEATH!', 'PERISH!', 'DOOM!'],
+                    claim: ['THE REAPER CLAIMS!'],
+                    join: ['WELCOME TO THE VOID!'],
+                    sell: ['COWARD!']
+                }
+            },
+            { 
+                id: 'wolf', 
+                name: 'WOLF PACK', 
+                icon: '⚡', 
+                color: '#ffcc00',
+                sounds: {
+                    place: ['AWOO!', 'STRIKE!', 'HUNT!'],
+                    claim: ['THE PACK GROWS!'],
+                    join: ['RUN WITH THE PACK!'],
+                    sell: ['LONE WOLF!']
+                }
+            },
+            { 
+                id: 'kraken', 
+                name: 'KRAKEN CULT', 
+                icon: '🌊', 
+                color: '#00ccff',
+                sounds: {
+                    place: ['SPLASH!', 'FLOOD!', 'WAVE!'],
+                    claim: ['THE TIDE RISES!'],
+                    join: ['DIVE INTO THE DEEP!'],
+                    sell: ['ABANDON SHIP!']
+                }
+            },
+            { 
+                id: 'alien', 
+                name: 'ALIEN HORDE', 
+                icon: '👾', 
+                color: '#00ff00',
+                sounds: {
+                    place: ['ZAP!', 'INVADE!', 'BEAM!'],
+                    claim: ['INVASION BEGINS!'],
+                    join: ['WELCOME ABOARD!'],
+                    sell: ['DEFECTOR!']
+                }
+            }
+        ];
+
+        // ============================================
+        // STATE
+        // ============================================
+        let canvas = [];
+        let selectedGuild = null;
+        let currentWallet = null;
+        let pixelCount = 0;
+        let tokenBalance = 0;
+        let tokenPrice = 0;
+        let usdValue = 0;
+        let cooldownTime = 0;
+        let guildStats = {};
+        let guildMembers = {};
+        let totalPixels = 0;
+
+        GUILDS.forEach(g => {
+            guildStats[g.id] = { pixels: 0, placements: 0 };
+            guildMembers[g.id] = [];
+        });
+
+        // ============================================
+        // INIT
+        // ============================================
+        function init() {
+            createCanvas();
+            createGuildSelector();
+            startCooldownTimer();
+            loadSavedData();
+            updateRankings();
+            addActivity('🌍 Pixel Art Wars is LIVE! Choose your guild and conquer!', '#ff6600');
+        }
+
+        function createCanvas() {
+            const canvasEl = document.getElementById('pixelCanvas');
+            canvasEl.style.gridTemplateColumns = `repeat(${CONFIG.GRID_SIZE}, 8px)`;
+            
+            for (let y = 0; y < CONFIG.GRID_SIZE; y++) {
+                canvas[y] = [];
+                for (let x = 0; x < CONFIG.GRID_SIZE; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'pixel-cell';
+                    cell.onclick = () => placePixel(x, y);
+                    canvasEl.appendChild(cell);
+                    canvas[y][x] = { element: cell, guild: null };
+                }
+            }
+            
+            loadCanvas();
+        }
+
+        function createGuildSelector() {
+            const selector = document.getElementById('guildSelector');
+            GUILDS.forEach(guild => {
+                const card = document.createElement('div');
+                card.className = 'guild-card';
+                card.style.borderColor = guild.color;
+                card.style.color = guild.color;
+                card.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 2em;">${guild.icon}</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; font-size: 1.1em;">${guild.name}</div>
+                            <div style="font-size: 0.75em; color: #888;">${guildMembers[guild.id].length} members</div>
+                        </div>
+                    </div>
+                `;
+                card.onclick = () => selectGuild(guild);
+                card.id = 'guild-' + guild.id;
+                selector.appendChild(card);
+            });
+        }
+
+        // ============================================
+        // WALLET
+        // ============================================
+        async function connectWallet() {
+            const input = document.getElementById('walletInput').value.trim();
+            const status = document.getElementById('statusMessage');
+            
+            if (!input || input.length < 32) {
+                showStatus('❌ Invalid wallet address', 'error');
+                return;
+            }
+
+            showStatus('🔄 Verifying wallet...', 'loading');
+            
+            // Simulate verification (replace with real Solana RPC call)
+            setTimeout(() => {
+                currentWallet = input;
+                localStorage.setItem('pixelWarsWallet', input);
+                showWalletConnected();
+                refreshBalance();
+                checkGuildMembership();
+            }, 1500);
+        }
+
+        function showWalletConnected() {
+            document.getElementById('walletInputSection').style.display = 'none';
+            document.getElementById('walletConnectedSection').style.display = 'block';
+            document.getElementById('walletAddress').textContent = 
+                currentWallet.slice(0, 4) + '...' + currentWallet.slice(-4);
+        }
+
+        async function refreshBalance() {
+            // REAL IMPLEMENTATION:
+            // 1. Query Solana RPC for token balance
+            // 2. Get current token price from pump.fun API
+            // 3. Calculate USD value
+            
+            // PLACEHOLDER (replace with real API calls):
+            tokenBalance = Math.floor(Math.random() * 10000000) + 5000000;
+            tokenPrice = 0.00005; // Replace with real price fetch
+            usdValue = tokenBalance * tokenPrice;
+            
+            updateBalanceDisplay();
+        }
+
+        function updateBalanceDisplay() {
+            document.getElementById('tokenBalance').textContent = formatNumber(tokenBalance);
+            document.getElementById('usdValue').textContent = '$' + usdValue.toFixed(2);
+            const available = Math.floor(usdValue * CONFIG.PIXELS_PER_DOLLAR);
+            document.getElementById('availablePixels').textContent = available;
+            
+            const claimBtn = document.getElementById('claimBtn');
+            if (available > 0) {
+                claimBtn.textContent = `CLAIM ${available} PIXELS`;
+                claimBtn.disabled = false;
+            } else {
+                claimBtn.textContent = 'NO PIXELS TO CLAIM';
+                claimBtn.disabled = true;
+            }
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
+            return num;
+        }
+
+        // ============================================
+        // GUILDS
+        // ============================================
+        function selectGuild(guild) {
+            if (!currentWallet) {
+                alert('⚠️ Connect wallet first!');
+                return;
+            }
+
+            // Check if already in a guild
+            const savedGuild = localStorage.getItem('pixelWarsGuild_' + currentWallet);
+            if (savedGuild && savedGuild !== guild.id) {
+                alert('❌ Your wallet is already bound to another guild!');
+                return;
+            }
+
+            selectedGuild = guild;
+            localStorage.setItem('pixelWarsGuild_' + currentWallet, guild.id);
+            
+            if (!guildMembers[guild.id].includes(currentWallet)) {
+                guildMembers[guild.id].push(currentWallet);
+                saveGuildMembers();
+            }
+
+            // Update UI
+            document.querySelectorAll('.guild-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('guild-' + guild.id).classList.add('selected');
+            
+            updateRankings();
+            addActivity(getSound(guild, 'join') + ' ' + currentWallet.slice(0,6) + '... joined!', guild.color);
+        }
+
+        function checkGuildMembership() {
+            const savedGuild = localStorage.getItem('pixelWarsGuild_' + currentWallet);
+            if (savedGuild) {
+                const guild = GUILDS.find(g => g.id === savedGuild);
+                if (guild) selectGuild(guild);
+            }
+        }
+
+        // ============================================
+        // PIXELS
+        // ============================================
+        function claimPixels() {
+            const available = Math.floor(usdValue * CONFIG.PIXELS_PER_DOLLAR);
+            if (available <= 0) return;
+
+            pixelCount += available;
+            updatePixelCount();
+            
+            if (selectedGuild) {
+                addActivity(getSound(selectedGuild, 'claim') + ` +${available} pixels`, selectedGuild.color);
+            }
+        }
+
+        function placePixel(x, y) {
+            if (!selectedGuild) {
+                alert('⚠️ Select a guild first!');
+                return;
+            }
+            
+            if (pixelCount <= 0) {
+                alert('⚠️ No pixels! Claim pixels from your tokens.');
+                return;
+            }
+            
+            if (cooldownTime > 0) return;
+
+            const cell = canvas[y][x];
+            
+            // Remove from old guild stats
+            if (cell.guild) {
+                guildStats[cell.guild].pixels--;
+            } else {
+                totalPixels++;
+            }
+
+            // Update cell
+            cell.element.style.backgroundColor = selectedGuild.color;
+            cell.guild = selectedGuild.id;
+            guildStats[selectedGuild.id].pixels++;
+            guildStats[selectedGuild.id].placements++;
+
+            pixelCount--;
+            updatePixelCount();
+            startCooldown();
+            saveCanvas();
+            updateRankings();
+            
+            document.getElementById('totalPixels').textContent = totalPixels;
+            addActivity(`${getSound(selectedGuild, 'place')} at X:${x} Y:${y}`, selectedGuild.color);
+        }
+
+        function updatePixelCount() {
+            const el = document.getElementById('pixelCount');
+            el.textContent = pixelCount;
+            el.style.color = selectedGuild ? selectedGuild.color : '#fff';
+        }
+
+        function startCooldown() {
+            cooldownTime = CONFIG.COOLDOWN_SECONDS;
+        }
+
+        function startCooldownTimer() {
+            setInterval(() => {
+                if (cooldownTime > 0) {
+                    cooldownTime -= 0.1;
+                    if (cooldownTime < 0) cooldownTime = 0;
+                    
+                    const pct = ((CONFIG.COOLDOWN_SECONDS - cooldownTime) / CONFIG.COOLDOWN_SECONDS * 100);
+                    const bar = document.getElementById('cooldownBar');
+                    bar.style.width = pct + '%';
+                    
+                    const text = document.getElementById('cooldownText');
+                    text.textContent = cooldownTime > 0 ? `${cooldownTime.toFixed(1)}s` : 'Ready to place!';
+                }
+            }, 100);
+        }
+
+        // ============================================
+        // RANKINGS
+        // ============================================
+        function updateRankings() {
+            const el = document.getElementById('rankings');
+            const sorted = [...GUILDS].sort((a, b) => guildStats[b.id].pixels - guildStats[a.id].pixels);
+            
+            el.innerHTML = '';
+            sorted.forEach((guild, idx) => {
+                const row = document.createElement('div');
+                row.className = 'stat-row';
+                row.style.borderColor = guild.color;
+                row.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 1.3em;">${guild.icon}</span>
+                        <div>
+                            <div style="font-weight: bold; color: ${guild.color};">${guild.name}</div>
+                            <div style="font-size: 0.75em; color: #888;">${guildMembers[guild.id].length} members</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 1.2em; font-weight: bold; color: ${guild.color};">#${idx + 1}</div>
+                        <div style="font-size: 0.85em; color: #aaa;">${guildStats[guild.id].pixels} px</div>
+                    </div>
+                `;
+                el.appendChild(row);
+            });
+        }
+
+        // ============================================
+        // ACTIVITY
+        // ============================================
+        function addActivity(msg, color) {
+            const feed = document.getElementById('activityFeed');
+            const item = document.createElement('div');
+            item.className = 'activity-item';
+            item.style.borderColor = color;
+            item.textContent = msg;
+            feed.insertBefore(item, feed.firstChild);
+            
+            if (feed.children.length > 20) {
+                feed.removeChild(feed.lastChild);
+            }
+        }
+
+        function getSound(guild, action) {
+            const sounds = guild.sounds[action];
+            return sounds[Math.floor(Math.random() * sounds.length)];
+        }
+
+        function showStatus(msg, type) {
+            const el = document.getElementById('statusMessage');
+            el.className = 'status-box status-' + type;
+            el.textContent = msg;
+        }
+
+        // ============================================
+        // STORAGE
+        // ============================================
+        function saveCanvas() {
+            const data = [];
+            for (let y = 0; y < CONFIG.GRID_SIZE; y++) {
+                for (let x = 0; x < CONFIG.GRID_SIZE; x++) {
+                    if (canvas[y][x].guild) {
+                        data.push({ x, y, guild: canvas[y][x].guild });
+                    }
+                }
+            }
+            localStorage.setItem('pixelWarsCanvas', JSON.stringify(data));
+        }
+
+        function loadCanvas() {
+            const data = localStorage.getItem('pixelWarsCanvas');
+            if (!data) return;
+            
+            JSON.parse(data).forEach(({ x, y, guild }) => {
+                if (canvas[y] && canvas[y][x]) {
+                    canvas[y][x].element.style.backgroundColor = GUILDS.find(g => g.id === guild)?.color || '#222';
+                    canvas[y][x].guild = guild;
+                    guildStats[guild].pixels++;
+                    totalPixels++;
+                }
+            });
+            
+            document.getElementById('totalPixels').textContent = totalPixels;
+        }
+
+        function saveGuildMembers() {
+            localStorage.setItem('pixelWarsGuildMembers', JSON.stringify(guildMembers));
+        }
+
+        function loadSavedData() {
+            // Load guild members
+            const savedMembers = localStorage.getItem('pixelWarsGuildMembers');
+            if (savedMembers) {
+                guildMembers = JSON.parse(savedMembers);
+            }
+
+            // Load wallet
+            const savedWallet = localStorage.getItem('pixelWarsWallet');
+            if (savedWallet) {
+                currentWallet = savedWallet;
+                document.getElementById('walletInput').value = savedWallet;
+                showWalletConnected();
+                refreshBalance();
+                checkGuildMembership();
+            }
+        }
+
+        // ============================================
+        // START
+        // ============================================
+        init();
+    </script>
+</body>
+</html>
